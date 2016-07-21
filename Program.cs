@@ -10,7 +10,7 @@ namespace ConsoleApplication
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            IDataLink dataLink = new SqlDataLink("Server=192.168.0.17;Database=tempdb;User ID=devserver;Password=devserver;");
+            IDataLink dataLink = new SqlDataLink(args[0]);
             SqlDataLinkTest dtst = new SqlDataLinkTest(dataLink);
             //dtst.Run();
             SqlScriptingTest stst = new SqlScriptingTest(
