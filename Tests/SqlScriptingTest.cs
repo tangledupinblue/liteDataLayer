@@ -23,12 +23,12 @@ namespace LiteDataLayer.Tests
             //normal crud ops
             foreach (var testy in testies) {
                 DebugScript(testy, "");
-                DebugScript(testy, "{ [{num1 k }] }");
-                DebugScript(testy, "{ [{num1 k a }] }");
-                DebugScript(testy, "{ o [{ num1 k }] }");
-                DebugScript(testy, "{ Testy [{ num1 k }] }");
-                DebugScript(testy, "{ Testy o [{ num1 k }] }");                
-                Debug.Assert(((Action)(() => DebugScript(testy, "{ Testy o [{ int1 k }] }"))).ExceptionThrown());                
+                DebugScript(testy, " [ num1 k ] ");
+                DebugScript(testy, " [ num1 k a ] ");
+                DebugScript(testy, " o [ num1 k ] ");
+                DebugScript(testy, " Testy [ num1 k ] ");
+                DebugScript(testy, " Testy o [ num1 k, guid1 k ] ");                
+                Debug.Assert(((Action)(() => DebugScript(testy, " Testy o [ int1 k ] "))).ExceptionThrown());                
             }
         }
 

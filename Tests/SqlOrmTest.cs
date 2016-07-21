@@ -25,25 +25,28 @@ namespace LiteDataLayer.Tests
             TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSql()));
             Console.WriteLine("Identity Insert int");
             testy = TestyFactory.GiveMe(1)[0];
-            testy.SchemaDef = "{ [ { num1 k a } ] }";
+            testy.SchemaDef = " [ num1 k a ] ";
             Console.WriteLine("Multiple Keys");
             testy = TestyFactory.GiveMe(1)[0];
-            testy.SchemaDef = "{ [ { num1 k a }, { guid1 k } ] }";            
+            testy.SchemaDef = " [ num1 k a , guid1 k ] ";            
             TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSqlIntIdentity()));
             Console.WriteLine("Invalid Directive on Entity");
             testy = TestyFactory.GiveMe(1)[0];
-            testy.SchemaDef = "{ [ { int1 k a } ] }";
+            testy.SchemaDef = " [ int1 k a ] ";
             Debug.Assert(((Action)(() =>  {
                     TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSqlIntIdentity()));
                     }))
                     .ExceptionThrown());
             //test selects...
+            dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSql());
+            var testies = TestyFactory.GiveMe(10);
+            orm.Insert(testies);
             Console.WriteLine("Testing Select");
             Console.WriteLine("-------------------");
             Console.WriteLine(string.Format("Found {0} records", orm.SelectAll<Testy>().Count()));
             Console.WriteLine("Testing Select Where");
             Console.WriteLine("-------------------");
-            var selector = new { num1 = 1 };
+            var selector = new { num1 = 0 };
             Console.WriteLine(selector.GetType());
             Console.WriteLine(string.Format("Found {0} records",
                         orm.SelectWhere<Testy>(selector).Count()));

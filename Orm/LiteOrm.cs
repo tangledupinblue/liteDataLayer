@@ -32,9 +32,14 @@ namespace LiteDataLayer.Orm
         public void Insert<T>(T entity) where T : IScriptable {
             string sql = scripter.ScriptInsert(entity, entity.SchemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
-            Console.WriteLine(lts[0].ToTextResults("|"));
             if (lts[0].Rows.Count >0) {
                 DataObjectExtensions.UpdateValues<T>(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
+            }
+        }
+
+        public void Insert<T>(List<T> entities) where T : IScriptable {
+            foreach (var entity in entities) {
+                Insert<T>(entity);
             }
         }
 
@@ -70,7 +75,7 @@ namespace LiteDataLayer.Orm
             return itms.ToList();
         }
 
-        public List<T> SelectWhere<T>(dynamic selector) {
+        public List<T> SelectWhere<T>(object selector) {
             string sql = scripter.ScriptSelect(typeof(T), selector);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             var itms = (from row in lts[0].Rows

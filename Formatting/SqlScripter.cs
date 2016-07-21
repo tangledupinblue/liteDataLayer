@@ -10,25 +10,9 @@ using System.Diagnostics;
 namespace LiteDataLayer.Formatting
 {
     public class SqlScripter
-    {
-        //protected const string SQL_INSERT = "INSERT <Table> (<Columns>) VALUES (<Values>)";
-        //protected const string SQL_LOAD = "SELECT * FROM <Table> WHERE <KeyColumnsAndValues>";
-        //protected const string SQL_UPDATE = "UPDATE <Table> SET <NonKeyColumnsAndValues> WHERE <KeyColumnsAndValues>";
-        //protected const string SQL_DELETE = "DELETE FROM <Table> WHERE <KeyColumnsAndValues>";
-        //protected const string SQL_FIND_ALL = "SELECT * FROM <Table>";
-        //protected const string SQL_FIND_BY_NAME = "SELECT * FROM <Table> WHERE <NameCol> = <NameValue> ";
-        //protected const string SQL_EXISTS = "SELECT COUNT(*) FROM <Table> WHERE <KeyColumnsAndValues>";
-        //protected const string SQL_FIND_WHERE = "SELECT * FROM <Table> WHERE <WhereClause>";
-
-        // private string lastScript = null;
-        // private string lastRequest = null;
-        // private ScriptedSchema lastSchema = null;
-        
+    {        
         public string ScriptInsert(object entity, string script) {
             var schema = new ScriptedSchema(entity.GetType(), script);
-            // var schema = lastRequest == "insert" && lastScript == script    
-            //             ? lastSchema
-            //             : new ScriptedSchema(entity.GetType(), script);
             string[] cols = schema.Columns.Where(p => !(p.IsAutoID || p.IsReadOnly || p.Ignore))
                                     .Select(p => p.ColumnName).ToArray();
             string insert = string.Format("INSERT {0} ({1}) VALUES ({2}); {3}",
@@ -43,16 +27,11 @@ namespace LiteDataLayer.Formatting
                         schema.Columns.Any(p => p.IsAutoID)
                             ? string.Format("SELECT SCOPE_IDENTITY() AS {0}", schema.Columns.First().ColumnName)
                             : "");
-            // lastRequest = "insert";
-            // lastScript = script;
             return insert;                    
         }
 
         public string ScriptLoad(object entity, string script) {
             var schema = new ScriptedSchema(entity.GetType(), script);
-            // var schema = lastRequest == "load" && lastScript == script    
-            //             ? lastSchema
-            //             : new ScriptedSchema(entity.GetType(), script);
             var whereCols =    schema.Columns.Where(p => p.IsKey)
                                 .Select(p => p.ColumnName)
                                 .Join(entity.GetType().GetProperties(),
@@ -68,16 +47,11 @@ namespace LiteDataLayer.Formatting
                         schema.TableName,
                         string.Join(" AND ", whereCols
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
-            // lastRequest = "load";
-            // lastScript = script;
             return insert;                    
         }
 
         public string ScriptUpdate(object entity, string script) {
             var schema = new ScriptedSchema(entity.GetType(), script);
-            // var schema = lastRequest == "update" && lastScript == script    
-            //             ? lastSchema
-            //             : new ScriptedSchema(entity.GetType(), script);
             var cols = schema.Columns.Select(p => new { p.ColumnName, p.IsKey })
                             .Join(entity.GetType().GetProperties(),
                                 (left) => left.ColumnName, (right) => right.Name,
@@ -93,16 +67,11 @@ namespace LiteDataLayer.Formatting
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))),
                         string.Join(" AND ", cols.Where(p => p.isKey)
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));                            
-            // lastRequest = "update";
-            // lastScript = script;
             return insert;                    
         }
 
         public string ScriptDelete(object entity, string script) {
             var schema = new ScriptedSchema(entity.GetType(), script);
-            // var schema = lastRequest == "load" && lastScript == script    
-            //             ? lastSchema
-            //             : new ScriptedSchema(entity.GetType(), script);
             string[] cols = schema.Columns.Where(p => p.IsKey)
                                     .Select(p => p.ColumnName).ToArray();
             string insert = string.Format("DELETE FROM {0} WHERE {1}",
@@ -113,8 +82,6 @@ namespace LiteDataLayer.Formatting
                                                         type = right.PropertyType, 
                                                         val = right.GetValue(entity) })
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
-            // lastRequest = "load";
-            // lastScript = script;
             return insert;                    
         }
 
@@ -123,26 +90,25 @@ namespace LiteDataLayer.Formatting
                 return "SELECT * FROM " + type.Name;
             }
             var schema = new ScriptedSchema(type, script);
-            // var schema = lastRequest == "select" && lastScript == script    
-            //             ? lastSchema
-            //             : new ScriptedSchema(type, script);
             string sql = string.Format("SELECT * FROM {1}", schema.TableName);
-            // lastRequest = "select";
-            // lastScript = script;
             return sql;
         }
 
-        public string ScriptSelect(Type type, dynamic selector, string script = "") {
+        public string ScriptSelect(Type type, object selector, string script = "") {
+            Console.WriteLine(selector);
             var schema = new ScriptedSchema(type, selector, script);
-            var whereCols =    schema.Columns.Where(p => p.IsKey)
-                                .Select(p => p.ColumnName)
-                                .Join((selector as IDictionary<string,object>)
-                                            .Cast<KeyValuePair<string,object>>()
-                                            .Select(p => new { p.Key, p.Value }),
-                                (left) => left, (right) => right.Key,
-                                (left,right) => new {   name = right.Key,
-                                                        type = right.Value.GetType(), 
-                                                        val = right.Value });
+            var whereCols = from prop in selector.GetType().GetProperties()
+                            select new { name = prop.Name,
+                                        type = prop.PropertyType,
+                                        val = prop.GetValue(selector) };
+                                // schema.Columns
+                                // .Select(p => p.ColumnName)
+                                // .Join(selector.GetType().GetProperties()
+                                //     .Select(p => new { Key = p.Name, Value = p.GetValue(selector) }),
+                                // (left) => left, (right) => right.Key,
+                                // (left,right) => new {   name = right.Key,
+                                //                         type = right.Value.GetType(), 
+                                //                         val = right.Value });
             if (!whereCols.Any()) { 
                 throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
                         type, schema.ToString()));
@@ -152,6 +118,28 @@ namespace LiteDataLayer.Formatting
                         string.Join(" AND ", whereCols
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
         }
+
+        // public string ScriptSelect(Type type, dynamic selector, string script = "") {
+        //     var schema = new ScriptedSchema(type, selector, script);
+        //     var whereCols =    schema.Columns.Where(p => p.IsKey)
+        //                         .Select(p => p.ColumnName)
+        //                         .Join((selector as IDictionary<string,object>)
+        //                                     .Cast<KeyValuePair<string,object>>()
+        //                                     .Select(p => new { p.Key, p.Value }),
+        //                         (left) => left, (right) => right.Key,
+        //                         (left,right) => new {   name = right.Key,
+        //                                                 type = right.Value.GetType(), 
+        //                                                 val = right.Value });
+        //     if (!whereCols.Any()) { 
+        //         throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
+        //                 type, schema.ToString()));
+        //     }
+        //     return string.Format("SELECT * FROM {0} WHERE {1}",
+        //             schema.TableName,
+        //                 string.Join(" AND ", whereCols
+        //                     .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
+        // }
+
 
         public void DebugScript(object entity, string script) {
             Console.WriteLine(script);
@@ -204,8 +192,10 @@ namespace LiteDataLayer.Formatting
 
         private class ScriptedSchema {
             
-            private static string TableRegex = @"^\s*\173(\s*[A-Z,a-z]*)*(\[|\174)";
-            internal static string ColumnRegex = @"(\173[^\173\175]*\175)";
+            //private static string TableRegex = @"^\s*\173(\s*[A-Z,a-z]*)*(\[|\174)";
+            private static string TableRegex = @"^\s*(\s*[A-Z,a-z]*)*(\[|\174)";
+            //internal static string ColumnRegex = @"(\173[^\173\175]*\175)";
+            internal static string ColumnRegex = @"(\[|\,)(\s*[A-Za-z=0-9]*)*";
             //[^A-Z,a-z,_,0-9][o][^A-Z,a-z,_,0-9]
             internal static string NameRegex = @"[A-Z,a-z,_,0-9]{2,}";
             internal static string NotNameComponent = @"[^A-Z,a-z,_,0-9]"; 
@@ -245,15 +235,12 @@ namespace LiteDataLayer.Formatting
                 }
             }
 
-            public ScriptedSchema(Type t, dynamic selector, string directive) {
+            public ScriptedSchema(Type t, object selector, string directive) {
                 directive = directive ?? "";
                 SetTableName(t, directive);
                 Columns = new List<ScriptedColumn>();
-                Columns.AddRange(((selector as IDictionary<string, object>)
-                        .Select(p => new ScriptedColumn(p.Key))).ToArray());
-
-                //selector.GetType().GetProperties().ToList();                                    ;
-                //Columns.Add(pis.Select(p => new ScriptedColumn(p.)));
+                Columns.AddRange((selector.GetType().GetProperties()
+                        .Select(p => new ScriptedColumn(p.Name))).ToArray());
             }
 
             private void SetTableName(Type type, string directive) {
