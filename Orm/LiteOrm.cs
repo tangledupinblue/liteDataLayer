@@ -83,8 +83,7 @@ namespace LiteDataLayer.Orm
             return itms.ToList();            
         }
 
-        public T First<T>(string sql)
-        {
+        public T First<T>(string sql) {
             LiteTable[] lts = dataLink.GetTabularSets(sql,30);
             if (lts[0].Rows.Count  > 0)
             {

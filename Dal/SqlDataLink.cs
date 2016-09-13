@@ -110,6 +110,12 @@ namespace LiteDataLayer.Dal
             LiteTable lt = new LiteTable();
             //soon to be implemented I think - reader.GetColumnSchema
             //readonly collection DbColumn
+            // for (int i = 0; i < reader.FieldCount; i++) {
+            //     lt.Columns.Add(new LiteColumn(reader.GetName(i), reader.GetFieldType(i)));
+            // }
+                        // for (int i = 0; i < reader.FieldCount; i++) {
+            //     lt.Columns.Add(new LiteColumn(reader.GetName(i), reader.GetFieldType(i)));
+            // }
             for (int i = 0; i < reader.FieldCount; i++) {
                 lt.ColumnNames.Add(reader.GetName(i));
             }

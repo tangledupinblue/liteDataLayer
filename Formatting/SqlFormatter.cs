@@ -13,8 +13,10 @@ namespace LiteDataLayer.Formatting
 
         public static string Format(string formatString, params object[] parameters)
         {
-            return string.Format(formatString, parameters.Select(p => GetSqlString(p))
-                                                    .Cast<object>().ToArray());
+            return      parameters == null
+                        ? formatString
+                        : string.Format(formatString, parameters.Select(p => GetSqlString(p))
+                            .Cast<object>().ToArray());
         }
 
         public static string GetSqlString(object self) {
