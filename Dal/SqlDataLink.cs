@@ -11,76 +11,95 @@ namespace LiteDataLayer.Dal
 {
     public class SqlDataLink : IDataLink
     {
-        private SqlConnection Connection { get; set; }
+        //private SqlConnection Connection { get; set; }
+        public string ConnectionString { get; private set; } 
         public string ShortDateFormat { get { return "yyyyMMdd"; } }
 
-        public SqlDataLink(string ConnectionString) {
-            Connection = new SqlConnection(ConnectionString);
+        public SqlDataLink(string connectionString) {
+            ConnectionString = connectionString;
         }
      
         public int ExecuteNonQuery(string cmd, int sqlCommandTimeout = 30) {
-            try {
-                SqlCommand command = GetCommand(cmd, sqlCommandTimeout);
-                int ret = command.ExecuteNonQuery();
-                End();
-                return ret;
-            } catch (Exception ex) {
-                throw new Exception(string.Format("DataLink Error:{0}\r\n{1}",
-                    ex.Message, cmd), ex);
-            }
-            finally {
-                End();
-            }
-        }
-
-        public object ExecuteScalar(string cmd, int sqlCommandTimeout = 30) {
-            try {
-                SqlCommand command = GetCommand(cmd, sqlCommandTimeout);
-                object obj = command.ExecuteScalar();
-                End();
-                return obj; 
-            } catch (Exception ex) {
-                throw new Exception(string.Format("DataLink Error:{0}\r\n{1}",
-                    ex.Message, cmd), ex);
-            } finally {
-                End();
+            using (SqlConnection conn = new SqlConnection(ConnectionString))
+            {
+                conn.Open();
+                using (SqlCommand sqlComm = new SqlCommand(cmd, conn))
+                {
+                    int ret = sqlComm.ExecuteNonQuery();
+                    return ret;
+                }
+                conn.Close();
             }
         }
 
         public T ExecuteScalar<T>(string cmd, int sqlCommandTimeout = 30)
         {
             object obj = ExecuteScalar(cmd, sqlCommandTimeout);
-            return obj == DBNull.Value ? default(T) : (T)obj; 
+            if (obj == DBNull.Value)
+            {
+                return default(T);
+            }
+            else
+            {
+                return (T)obj;
+            }
+        }
+
+        public object ExecuteScalar(string cmd, int sqlCommandTimeout = 30)
+        {
+            using (SqlConnection conn = new SqlConnection(ConnectionString))
+            using (SqlCommand command = new SqlCommand(cmd, conn))
+            {
+                conn.Open();
+                object obj = command.ExecuteScalar();
+                return obj;
+                //conn.Close();
+            }
         }
   
         public LiteTable[] GetTabularSets(string cmd, int sqlCommandTimeout = 30)
         {
-            try {
-                List<LiteTable> tables = new List<LiteTable>();
-                SqlCommand command = GetCommand(cmd, sqlCommandTimeout);
+            List<LiteTable> tables = new List<LiteTable>();
+
+            using (SqlConnection conn = new SqlConnection(ConnectionString))
+            using (SqlCommand command = new SqlCommand(cmd, conn))
+            {
+                conn.Open();
                 SqlDataReader reader = command.ExecuteReader();
                 tables.Add(ReadResult(reader));
                 while (reader.NextResult()) {
                     tables.Add(ReadResult(reader));
                 }
                 End();
-                return tables.ToArray();
-            } catch (Exception ex) {
-                throw new Exception(string.Format("DataLink Error:{0}\r\n{1}",
-                    ex.Message, cmd), ex);
-            } finally {
-                End();
+                return tables.ToArray();                    
             }
+
+            // try {
+            //     List<LiteTable> tables = new List<LiteTable>();
+            //     SqlCommand command = GetCommand(cmd, sqlCommandTimeout);
+            //     SqlDataReader reader = command.ExecuteReader();
+            //     tables.Add(ReadResult(reader));
+            //     while (reader.NextResult()) {
+            //         tables.Add(ReadResult(reader));
+            //     }
+            //     End();
+            //     return tables.ToArray();
+            // } catch (Exception ex) {
+            //     throw new Exception(string.Format("DataLink Error:{0}\r\n{1}",
+            //         ex.Message, cmd), ex);
+            // } finally {
+            //     End();
+            // }
         }
 
         public string DataSource
         {
-            get { return (Connection == null) ? "None" : Connection.DataSource; }
+            get { return new SqlConnection(ConnectionString).DataSource; }
         }
 
         public string Database
         {
-            get { return (Connection == null) ? "None" : Connection.Database; }
+            get { return new SqlConnection(ConnectionString).Database; }
         }
 
         public string ConnectionType
@@ -90,20 +109,17 @@ namespace LiteDataLayer.Dal
 
         private void End()
         {
-            if (Connection.State == ConnectionState.Open) {
-                Connection.Close();
-            }
         }
 
-        private SqlCommand GetCommand(string commandString, int sqlCommandTimeOut)
-        {
-            SqlCommand comm = new SqlCommand(commandString, Connection as SqlConnection);
-            comm.CommandTimeout = sqlCommandTimeOut;
-            if (Connection.State != ConnectionState.Open) {
-                Connection.Open();
-            }
-            return comm;
-        }
+        // private SqlCommand GetCommand(string commandString, int sqlCommandTimeOut)
+        // {
+        //     SqlCommand comm = new SqlCommand(commandString, Connection as SqlConnection);
+        //     comm.CommandTimeout = sqlCommandTimeOut;
+        //     if (Connection.State != ConnectionState.Open) {
+        //         Connection.Open();
+        //     }
+        //     return comm;
+        // }
 
         private LiteTable ReadResult(SqlDataReader reader)
         {
@@ -118,6 +134,7 @@ namespace LiteDataLayer.Dal
             // }
             for (int i = 0; i < reader.FieldCount; i++) {
                 lt.ColumnNames.Add(reader.GetName(i));
+                lt.ColumnTypes.Add(reader.GetFieldType(i).FullName);
             }
             while (reader.Read()) {
                 object[] next = new object[reader.FieldCount];

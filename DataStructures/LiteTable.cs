@@ -10,10 +10,12 @@ namespace LiteDataLayer.DataStructures
     public class LiteTable 
     {
         public List<string> ColumnNames { get; set; }
+        public List<string> ColumnTypes { get; set; }
         public List<object[]> Rows { get; set; }
 
         public LiteTable() {
             ColumnNames = new List<string>();
+            ColumnTypes = new List<string>();
             Rows = new List<object[]>();
         }
 
