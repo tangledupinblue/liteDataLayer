@@ -30,7 +30,7 @@ namespace LiteDataLayer.Orm
         private SqlScripter scripter; 
 
         // <typename, schemaDef>
-        private SortedList<string, string> _schemaDefs = new SortedList<string, string>();
+        private SortedList<string, ScriptedSchema> _schemaDefs = new SortedList<string, ScriptedSchema>();
 
         public LiteOrm(IDataLink dataLink, SqlScripter scripter)
         {
@@ -40,13 +40,22 @@ namespace LiteDataLayer.Orm
 
         public LiteOrm SetSchema(Type type, string schemaDef) {
             if (_schemaDefs.Keys.Contains(type.FullName)) {
-                _schemaDefs[type.FullName] = schemaDef;
+                _schemaDefs[type.FullName] = new ScriptedSchema(type,schemaDef);
             } else {
-                _schemaDefs.Add(type.FullName, schemaDef);
+                _schemaDefs.Add(type.FullName, new ScriptedSchema(type,schemaDef));
             }
             return this;
         }
 
+        public LiteOrm SetSchema(Type type, ScriptedSchema schema) {
+            if (_schemaDefs.Keys.Contains(type.FullName)) {
+                _schemaDefs[type.FullName] = schema;
+            } else {
+                _schemaDefs.Add(type.FullName, schema);
+            }
+            return this;
+        }
+        
         public LiteOrm ClearSchema(Type type) {
             if (_schemaDefs.Keys.Contains(type.FullName)) {
                 _schemaDefs.Remove(type.FullName);
@@ -63,10 +72,10 @@ namespace LiteDataLayer.Orm
         public void Insert<T>(T entity) {
             InsertAs<T>(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
-                                            : "");
+                                            : new ScriptedSchema(typeof(T)));
         }
 
-        public void InsertAs<T>(T entity, string schemaDef) {
+        public void InsertAs<T>(T entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptInsert(entity, schemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             if (lts[0].Rows.Count >0) {
@@ -75,9 +84,9 @@ namespace LiteDataLayer.Orm
         }
 
         public void InsertMany<T>(List<T> entities) {
-            string schemaDef = _schemaDefs.ContainsKey(typeof(T).FullName)
+            ScriptedSchema schemaDef = _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
-                                            : "";
+                                            : new ScriptedSchema(typeof(T));
             foreach (var entity in entities) {
                 InsertAs<T>(entity, schemaDef);
             }
@@ -86,10 +95,10 @@ namespace LiteDataLayer.Orm
         public void Load<T>(T entity) {
             LoadAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
-                                            : "");
+                                            : new ScriptedSchema(typeof(T)));
         }
 
-        public void LoadAs<T>(T entity, string schemaDef) {
+        public void LoadAs<T>(T entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptLoad(entity, schemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             Console.WriteLine(lts[0].ToTextResults("|"));
@@ -99,10 +108,10 @@ namespace LiteDataLayer.Orm
         public void Update<T>(T entity) {
             UpdateAs<T>(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
-                                            : "");
+                                            : new ScriptedSchema(typeof(T)));
         }
 
-        public void UpdateAs<T>(T entity, string schemaDef) {
+        public void UpdateAs<T>(T entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptUpdate(entity, schemaDef);
             dataLink.ExecuteNonQuery(sql);
         }
@@ -110,10 +119,10 @@ namespace LiteDataLayer.Orm
         public void Delete<T>(T entity)  {
             string sql = scripter.ScriptDelete(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
-                                            : "");
+                                            : new ScriptedSchema(typeof(T)));
         }
 
-        public void DeleteAs<T>(T entity, string schemaDef) {
+        public void DeleteAs<T>(T entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptDelete(entity, schemaDef);
             dataLink.ExecuteNonQuery(sql);
         }
@@ -128,7 +137,7 @@ namespace LiteDataLayer.Orm
 
         public List<T> SelectAll<T>()
         {            
-            string sql = scripter.ScriptSelect(typeof(T));
+            string sql = scripter.ScriptSelect<T>();
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             var itms = (from row in lts[0].Rows
                         select DataObjectExtensions.CreateNewType<T>(row, lts[0].ColumnNames.ToArray()));
@@ -136,7 +145,7 @@ namespace LiteDataLayer.Orm
         }
 
         public List<T> SelectWhere<T>(object selector) {
-            string sql = scripter.ScriptSelect(typeof(T), selector);
+            string sql = scripter.ScriptSelect<T>(selector);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             var itms = (from row in lts[0].Rows
                         select DataObjectExtensions.CreateNewType<T>(row, lts[0].ColumnNames.ToArray()));
@@ -151,8 +160,6 @@ namespace LiteDataLayer.Orm
             }
             return default(T);
         }
-
-
     }   
     public static class DataTableExtensions
     {

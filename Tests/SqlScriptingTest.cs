@@ -22,17 +22,18 @@ namespace LiteDataLayer.Tests
             var testies = TestyFactory.GiveMe(1);
             //normal crud ops
             foreach (var testy in testies) {
-                DebugScript(testy, "");
-                DebugScript(testy, " [ num1 k ] ");
-                DebugScript(testy, " [ num1 k a ] ");
-                DebugScript(testy, " o [ num1 k ] ");
-                DebugScript(testy, " Testy [ num1 k ] ");
-                DebugScript(testy, " Testy o [ num1 k, guid1 k ] ");                
-                Debug.Assert(((Action)(() => DebugScript(testy, " Testy o [ int1 k ] "))).ExceptionThrown());                
+                DebugScript(testy, null);
+                DebugScript(testy, new ScriptedSchema(typeof(Testy), " [ num1 k ] "));
+                DebugScript(testy, new ScriptedSchema(typeof(Testy), " [ num1 k a ] "));
+                DebugScript(testy, new ScriptedSchema(typeof(Testy), " o [ num1 k ] "));
+                DebugScript(testy, new ScriptedSchema(typeof(Testy), " Testy [ num1 k ] "));
+                DebugScript(testy, new ScriptedSchema(typeof(Testy), " Testy o [ num1 k, guid1 k ] "));                
+                Debug.Assert(((Action)(() => DebugScript(testy, 
+                                new ScriptedSchema(typeof(Testy), " Testy o [ int1 k ] ")))).ExceptionThrown());                
             }
         }
 
-        private void DebugScript(Testy testy, string directive) {
+        private void DebugScript(Testy testy, ScriptedSchema directive) {
             Console.WriteLine();
             Console.WriteLine(directive);
             scripter.DebugScript(testy, "");

@@ -10,9 +10,9 @@
 --debug-type:portable
 --emit-entry-point:True
 --output-name:LiteDataLayer
---file-version:1.0.5.0
---version:1.0.5.0
---informational-version:1.0.5
+--file-version:1.0.6.0
+--version:1.0.6.0
+--informational-version:1.0.6
 --target-framework:.NETCoreApp,Version=v1.0
 --reference:/home/barrys/.nuget/packages/Microsoft.CSharp/4.0.1/ref/netstandard1.0/Microsoft.CSharp.dll
 --reference:/home/barrys/.nuget/packages/Microsoft.VisualBasic/10.0.1/ref/netstandard1.1/Microsoft.VisualBasic.dll
@@ -96,12 +96,14 @@
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Formatting/SqlScripter.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Formatting/IScriptable.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Formatting/SqlFormatter.cs
+/home/barrys/Documents/code/dotnet/LiteDataLayer/Formatting/ScriptedSchema.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Formatting/ComplexScriptable.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/SqlOrmTest.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/Testy.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/TestExtensions.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/SqlDataLinkTest.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/SqlScriptingTest.cs
+/home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/ScriptedSchemaTests.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Orm/LiteOrm.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Dal/IDataLink.cs
 /home/barrys/Documents/code/dotnet/LiteDataLayer/Dal/SqlDataLink.cs
