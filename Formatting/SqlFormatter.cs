@@ -9,6 +9,7 @@ namespace LiteDataLayer.Formatting
 {
     public static class SqlFormatter
     {
+
         public static string ShortDateFormat { get; set; } = "yyyyMMdd";
 
         public static string Format(string formatString, params object[] parameters)
@@ -81,7 +82,7 @@ namespace LiteDataLayer.Formatting
                         valString = "0x" + string.Concat(((byte[])valObject).Select(b => b.ToString("X2")));
                         break;
                     default:
-                        valString = "NULL";
+                        valString = valObject == null ? "NULL" : valObject.ToString();
                         break;
                 }
                 return valString;
