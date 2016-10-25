@@ -7,7 +7,7 @@ using LiteDataLayer.Formatting;
 
 namespace LiteDataLayer.Tests
 {
-	public class Testy : IScriptable
+	public class Testy
 	{	
 		public    int num1 {get; set; }	
 		public    int? num2 {get; set; }
@@ -26,11 +26,8 @@ namespace LiteDataLayer.Tests
 		public    DateTime datetime1 {get; set; }
 		public    DateTime? datetime2 {get; set; }
 
-        public string SchemaDef { get; set; }
-
         public override string ToString() {
-            return string.Format("Testy: {0} - {1}",
-                SchemaDef,
+            return string.Format("Testy: {0}",
                 string.Join(";", this.GetType().GetProperties()
                             .Select(p => p.Name + "=" + Convert.ToString(p.GetValue(this) ?? "null"))
                             .ToArray()));
@@ -51,13 +48,13 @@ namespace LiteDataLayer.Tests
                     val2 = null,
                     guid1 = Guid.NewGuid(),
                     guid2 = null,
-                    // money1 = Convert.ToDecimal(string.Format("{0}.{0}",i)),
-                    // money2 = null,
-                    // money3 = Convert.ToDouble(string.Format("{0}.{0}",i)),
-                    // money4 = null,
-                    // float1 = Convert.ToDecimal(string.Format("{0}.{0}",i)),
-                    // float2 = null,
-                    // float3 = Convert.ToDouble(string.Format("{0}.{0}",i)),
+                    money1 = Convert.ToDecimal(string.Format("{0:0.00}",i)),
+                    money2 = null,
+                    money3 = Convert.ToDouble(string.Format("{0:0.00}",i)),
+                    money4 = null,
+                    float1 = Convert.ToDecimal(string.Format("{0:0.00}",i)),
+                    float2 = null,
+                    float3 = Convert.ToDouble(string.Format("{0:0.00}",i)),
                     float4 = null,
                     datetime1 = DateTime.Now,
                     datetime2 = null

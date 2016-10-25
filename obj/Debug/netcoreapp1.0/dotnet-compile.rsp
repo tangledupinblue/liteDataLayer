@@ -10,9 +10,9 @@
 --debug-type:portable
 --emit-entry-point:True
 --output-name:LiteDataLayer
---file-version:1.0.3.0
---version:1.0.3.0
---informational-version:1.0.3
+--file-version:1.0.5.0
+--version:1.0.5.0
+--informational-version:1.0.5
 --target-framework:.NETCoreApp,Version=v1.0
 --reference:/home/barrys/.nuget/packages/Microsoft.CSharp/4.0.1/ref/netstandard1.0/Microsoft.CSharp.dll
 --reference:/home/barrys/.nuget/packages/Microsoft.VisualBasic/10.0.1/ref/netstandard1.1/Microsoft.VisualBasic.dll

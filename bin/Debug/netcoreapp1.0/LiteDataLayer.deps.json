@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v1.0": {
-      "LiteDataLayer/1.0.3": {
+      "LiteDataLayer/1.0.5": {
         "dependencies": {
           "System.Data.Common": "4.1.0",
           "System.Data.SqlClient": "4.1.0"
@@ -74,7 +74,7 @@
     }
   },
   "libraries": {
-    "LiteDataLayer/1.0.3": {
+    "LiteDataLayer/1.0.5": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

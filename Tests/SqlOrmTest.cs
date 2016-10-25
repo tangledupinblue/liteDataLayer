@@ -23,27 +23,37 @@ namespace LiteDataLayer.Tests
             Console.WriteLine("Defaults - no specifications");
             Testy testy = TestyFactory.GiveMe(1)[0];
             TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSql()));
+
             Console.WriteLine("Identity Insert int");
             testy = TestyFactory.GiveMe(1)[0];
-            testy.SchemaDef = " [ num1 k a ] ";
+            orm.SetSchema(testy.GetType(), " [ num1 k a ] "); 
+            TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSqlIntIdentity()));
+
             Console.WriteLine("Multiple Keys");
             testy = TestyFactory.GiveMe(1)[0];
-            testy.SchemaDef = " [ num1 k a , guid1 k ] ";            
+            orm.SetSchema(testy.GetType(), " [ num1 k a , guid1 k ] ");
             TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSqlIntIdentity()));
+
             Console.WriteLine("Invalid Directive on Entity");
             testy = TestyFactory.GiveMe(1)[0];
-            testy.SchemaDef = " [ int1 k a ] ";
+            orm.SetSchema(testy.GetType(), " [ wrongCol1 k a ] ");            
             Debug.Assert(((Action)(() =>  {
                     TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSqlIntIdentity()));
                     }))
                     .ExceptionThrown());
+            
             //test selects...
+            Console.WriteLine("Multiple Inserts");
+            Console.WriteLine("-------------------");
+            orm.ClearSchema(typeof(Testy));
             dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSql());
             var testies = TestyFactory.GiveMe(10);
-            orm.Insert(testies);
+            orm.InsertMany(testies.ToList());
+
             Console.WriteLine("Testing Select");
             Console.WriteLine("-------------------");
             Console.WriteLine(string.Format("Found {0} records", orm.SelectAll<Testy>().Count()));
+            
             Console.WriteLine("Testing Select Where");
             Console.WriteLine("-------------------");
             var selector = new { num1 = 0 };
@@ -55,7 +65,7 @@ namespace LiteDataLayer.Tests
         public void TestCrud(Testy testy, Action CreateTable) {
             CreateTable.Invoke();
             Console.WriteLine("Insert");            
-            orm.Insert<Testy>(testy);
+            orm.Insert<Testy>(testy);   
             Console.WriteLine(testy);
             Console.WriteLine("Load");            
             orm.Load<Testy>(testy);
