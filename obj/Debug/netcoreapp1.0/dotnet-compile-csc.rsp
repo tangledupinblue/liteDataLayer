@@ -99,6 +99,7 @@
 "/home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/SqlDataLinkTest.cs"
 "/home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/SqlScriptingTest.cs"
 "/home/barrys/Documents/code/dotnet/LiteDataLayer/Tests/ScriptedSchemaTests.cs"
+"/home/barrys/Documents/code/dotnet/LiteDataLayer/Orm/DataObjectExtensions.cs"
 "/home/barrys/Documents/code/dotnet/LiteDataLayer/Orm/LiteOrm.cs"
 "/home/barrys/Documents/code/dotnet/LiteDataLayer/Dal/IDataLink.cs"
 "/home/barrys/Documents/code/dotnet/LiteDataLayer/Dal/SqlDataLink.cs"

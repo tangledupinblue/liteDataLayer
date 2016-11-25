@@ -26,9 +26,9 @@ namespace LiteDataLayer.Dal
                 using (SqlCommand sqlComm = new SqlCommand(cmd, conn))
                 {
                     int ret = sqlComm.ExecuteNonQuery();
+                    conn.Close();
                     return ret;
                 }
-                conn.Close();
             }
         }
 

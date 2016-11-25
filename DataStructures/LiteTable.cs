@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -26,6 +27,28 @@ namespace LiteDataLayer.DataStructures
                 sb.AppendLine(row);                
             }
             return sb.ToString();
+        }
+    }
+
+    public static class DataTableExtensions
+    {
+        public static List<dynamic> ToDynamic(this LiteTable lt)
+        {
+            var dynamicDt = new List<dynamic>();
+            foreach (object[] row in lt.Rows)
+            {
+                dynamic dyn = new ExpandoObject();
+                //foreach (DataColumn column in dt.Columns)
+                for (int i = 0; i < lt.ColumnNames.Count; i++) 
+                {
+                    var dic = (IDictionary<string, object>)dyn;
+                    dic[lt.ColumnNames[i]] = row[i] == DBNull.Value
+                                        ? null
+                                        : row[i];
+                }
+                dynamicDt.Add(dyn);
+            }
+            return dynamicDt;
         }
     }
 }
