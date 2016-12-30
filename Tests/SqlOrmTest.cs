@@ -20,6 +20,10 @@ namespace LiteDataLayer.Tests
         }
         public void Run() {
 
+            Console.WriteLine();
+            Console.WriteLine("---------------------------------------------------------------------");
+            Console.WriteLine("Testing ORM");
+
             Console.WriteLine("Defaults - no specifications");
             Testy testy = TestyFactory.GiveMe(1)[0];
             TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSql()));
@@ -33,6 +37,15 @@ namespace LiteDataLayer.Tests
             testy = TestyFactory.GiveMe(1)[0];
             orm.SetSchema(testy.GetType(), " [ num1 k a , guid1 k ] ");
             TestCrud(testy, () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSqlIntIdentity()));
+
+            Console.WriteLine("Test Load with key selector");
+            testy = TestyFactory.GiveMe(2).Last();
+            orm.SetSchema(typeof(Testy), 
+                        new ScriptedSchema(typeof(Testy)).MakeKeyColumns(new string[] { "num1" })
+                                    .MakeAutoIDColumn("num1"));
+            orm.Insert(testy);            
+            testy = orm.Load<Testy>(new { num1 = testy.num1 });            
+            Debug.Assert(testy != null, "Expecting testy to load");
 
             Console.WriteLine("Invalid Directive on Entity");
             testy = TestyFactory.GiveMe(1)[0];

@@ -13,12 +13,14 @@ namespace LiteDataLayer.Formatting
     {        
         public string ScriptInsert(object entity, ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(entity.GetType(), "");
-            string[] cols = schema.Columns.Where(p => !(p.IsAutoID || p.IsReadOnly || p.Ignore))
-                                    .Select(p => p.ColumnName).ToArray();
+            // string[] cols = schema.Columns.Where(p => !(p.IsAutoID || p.IsReadOnly || p.Ignore))
+            //                         .Select(p => p.ColumnName).ToArray();
+            var cols = schema.Columns.Where(p => !(p.IsAutoID || p.IsReadOnly || p.Ignore));
             string insert = string.Format("INSERT {0} ({1}) VALUES ({2}); {3}",
                         schema.TableName,
-                        string.Join(", ", cols),
-                        string.Join(", ", cols.Join(entity.GetType().GetProperties(),
+                        string.Join(", ", cols.Select(p => p.ColumnName)),
+                        string.Join(", ", cols.Select(p => p.PropertyName)
+                            .Join(entity.GetType().GetProperties(),
                                 (left) => left, (right) => right.Name,
                                 (left,right) => new {   name = right.Name,
                                                         type = right.PropertyType, 
@@ -33,10 +35,10 @@ namespace LiteDataLayer.Formatting
         public string ScriptLoad(object entity, ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(entity.GetType(), "");
             var whereCols =    schema.Columns.Where(p => p.IsKey)
-                                .Select(p => p.ColumnName)
+                                //.Select(p => p.ColumnName)
                                 .Join(entity.GetType().GetProperties(),
-                                (left) => left, (right) => right.Name,
-                                (left,right) => new {   name = right.Name,
+                                (left) => left.PropertyName, (right) => right.Name,
+                                (left,right) => new {   name = left.ColumnName,
                                                         type = right.PropertyType, 
                                                         val = right.GetValue(entity) });
             if (!whereCols.Any()) { 
@@ -52,10 +54,10 @@ namespace LiteDataLayer.Formatting
 
         public string ScriptUpdate(object entity, ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(entity.GetType(), "");
-            var cols = schema.Columns.Select(p => new { p.ColumnName, p.IsKey })
+            var cols = schema.Columns  //.Select(p => new { p.ColumnName, p.IsKey })
                             .Join(entity.GetType().GetProperties(),
-                                (left) => left.ColumnName, (right) => right.Name,
-                                (left,right) => new {   name = right.Name,
+                                (left) => left.PropertyName, (right) => right.Name,
+                                (left,right) => new {   name = left.ColumnName,
                                                         isKey = left.IsKey,
                                                         type = right.PropertyType, 
                                                         val = right.GetValue(entity) })
@@ -72,13 +74,12 @@ namespace LiteDataLayer.Formatting
 
         public string ScriptDelete(object entity, ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(entity.GetType(), "");
-            string[] cols = schema.Columns.Where(p => p.IsKey)
-                                    .Select(p => p.ColumnName).ToArray();
+            var cols = schema.Columns.Where(p => p.IsKey);
             string insert = string.Format("DELETE FROM {0} WHERE {1}",
                         schema.TableName,
                         string.Join(" AND ", cols.Join(entity.GetType().GetProperties(),
-                                (left) => left, (right) => right.Name,
-                                (left,right) => new {   name = right.Name,
+                                (left) => left.PropertyName, (right) => right.Name,
+                                (left,right) => new {   name = left.ColumnName,
                                                         type = right.PropertyType, 
                                                         val = right.GetValue(entity) })
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
@@ -87,7 +88,8 @@ namespace LiteDataLayer.Formatting
 
         public string ScriptSelect<T>(ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(typeof(T), "");
-            string sql = string.Format("SELECT * FROM {0}", schema.TableName);
+            string sql = string.Format("SELECT {1} FROM {0}", schema.TableName,
+                    string.Join(", ", schema.Columns.Select(p => p.ColumnName + " AS " + p.PropertyName)));
             return sql;
         }
 
@@ -95,15 +97,18 @@ namespace LiteDataLayer.Formatting
             schema = schema ?? new ScriptedSchema(typeof(T), "");
             Console.WriteLine(selector);
             var whereCols = from prop in selector.GetType().GetProperties()
-                            select new { name = prop.Name,
+                            join col in schema.Columns
+                            on prop.Name equals col.PropertyName
+                            select new { name = col.ColumnName,
                                         type = prop.PropertyType,
                                         val = prop.GetValue(selector) };
             if (!whereCols.Any()) { 
                 throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
                         typeof(T), schema.ToString()));
             }
-            return string.Format("SELECT * FROM {0} WHERE {1}",
+            return string.Format("SELECT {1} FROM {0} WHERE {2}",
                     schema.TableName,
+                    string.Join(", ", schema.Columns.Select(p => p.ColumnName + " AS " + p.PropertyName)),                    
                         string.Join(" AND ", whereCols
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
         }

@@ -53,6 +53,41 @@ namespace LiteDataLayer.Orm
             }
         } 
 
+        public static T CopyValues<T>(object original) {
+            return CopyValues(original, CreateNewType<T>(new object[] {}, new string[] {}));
+        }
+
+        public static T CopyValues<T>(object original, T target)
+        {
+            Type thisone = typeof(T);
+            var originalProps = original.GetType().GetProperties();
+            foreach(var originalProp in originalProps)
+            {                
+                PropertyInfo pi = thisone.GetProperty(originalProp.Name);
+                try
+                {
+                    if (pi != null)
+                    {
+                        object originalVal = originalProp.GetValue(original);
+                        if (pi.PropertyType.Equals(originalProp.PropertyType))
+                        {
+                            pi.SetValue(target, originalVal, null);
+                        }
+                        else
+                        {
+                            pi.SetValue(target, ChangeType(originalVal, pi.PropertyType), null);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(
+                        string.Format("Error setting property {0}:\n{1}", pi == null ? "UNIDENTIFIED" : pi.Name, ex.Message), ex);
+                }
+            }
+            return target;
+        } 
+
         public static T CreateNewType<T>(object[] vals, string[] columnNames)
         {
             T item = Activator.CreateInstance<T>();

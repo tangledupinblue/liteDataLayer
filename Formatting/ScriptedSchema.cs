@@ -13,6 +13,7 @@ namespace LiteDataLayer.Formatting
 {
     public class ScriptedColumn {
         public string ColumnName { get; set; }
+        public string PropertyName { get; set; }
         public bool IsKey { get; set; }
         public bool IsAutoID { get; set; }
         public bool IsReadOnly { get; set; }
@@ -21,12 +22,10 @@ namespace LiteDataLayer.Formatting
         public int Length { get; set; }
         public bool Ignore { get; set; }
 
-        public ScriptedColumn() {
-        }
-
         public ScriptedColumn(string script) {
             var nameMatches = new Regex(ScriptedSchema.NameRegex).Matches(script);
             ColumnName = nameMatches[0].Value;
+            PropertyName = ColumnName;
 
             IsKey = new Regex(string.Format("{0}[k]{0}", ScriptedSchema.NotNameComponent))
                                 .Matches(script).Count > 0;
@@ -87,6 +86,7 @@ namespace LiteDataLayer.Formatting
                     var entityCols = type.GetProperties()
                                 .Where(p => !p.PropertyType.IsArray && !p.PropertyType.IsNested)
                                 .Select(p => p.Name)
+                                //TODO - not sure SchemaDef is relevant anymore
                                 .Except(Columns.Select(p => p.ColumnName).Append("SchemaDef"))
                                 .Select(p => new ScriptedColumn(p));
                     Columns.AddRange(entityCols.ToArray());
@@ -101,16 +101,21 @@ namespace LiteDataLayer.Formatting
             }
         }
 
-        public ScriptedSchema(Type t, object selector, string directive) {
-            directive = directive ?? "";
-            SetTableName(t, directive);
-            Columns = new List<ScriptedColumn>();
-            Columns.AddRange((selector.GetType().GetProperties()
-                    .Select(p => new ScriptedColumn(p.Name))).ToArray());
-        }
+        // public ScriptedSchema(Type t, object selector, string directive) {
+        //     directive = directive ?? "";
+        //     SetTableName(t, directive);
+        //     Columns = new List<ScriptedColumn>();
+        //     Columns.AddRange((selector.GetType().GetProperties()
+        //             .Select(p => new ScriptedColumn(p.Name))).ToArray());
+        // }
 
         public ScriptedSchema ChangeTableNameTo(string tableName) {
             TableName = tableName;
+            return this;
+        }
+
+        public ScriptedSchema ChangeColumnName(string propName, string columnName) {
+            Columns.First(p => p.PropertyName == propName).ColumnName = columnName;
             return this;
         }
 

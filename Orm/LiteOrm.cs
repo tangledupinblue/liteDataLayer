@@ -92,17 +92,23 @@ namespace LiteDataLayer.Orm
             }
         }
 
-        public void Load<T>(T entity) {
-            LoadAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
-                                            ? _schemaDefs[typeof(T).FullName]
-                                            : new ScriptedSchema(typeof(T)));
+        public T Load<T>(object selector) {
+            return Load(DataObjectExtensions.CopyValues<T>(selector));
         }
 
-        public void LoadAs<T>(T entity, ScriptedSchema schemaDef) {
+        public T Load<T>(T entity) {
+            return LoadAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+                                            ? _schemaDefs[typeof(T).FullName]
+                                            : new ScriptedSchema(typeof(T)));                        
+        }
+
+        public T LoadAs<T>(T entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptLoad(entity, schemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             Console.WriteLine(lts[0].ToTextResults("|"));
+            if (lts[0].Rows.Count == 0) { return default(T); }
             DataObjectExtensions.UpdateValues<T>(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
+            return entity;
         }
 
         public void Update<T>(T entity) {
@@ -144,6 +150,7 @@ namespace LiteDataLayer.Orm
             return itms.ToList();
         }
 
+        //TODO - doesn't handle schema def!!
         public List<T> SelectWhere<T>(object selector) {
             string sql = scripter.ScriptSelect<T>(selector);
             LiteTable[] lts = dataLink.GetTabularSets(sql);

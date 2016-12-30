@@ -34,6 +34,12 @@ namespace LiteDataLayer.Tests
         }
     }
 
+    public class BadTesty
+    {
+		public    int badnum1 {get; set; }	
+		public    int? badnum2 {get; set; }
+    }
+
 	public static class TestyFactory
 	{
 		public static List<Testy> GiveMe(int howMany) {
