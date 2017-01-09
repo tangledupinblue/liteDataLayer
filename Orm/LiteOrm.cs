@@ -69,17 +69,24 @@ namespace LiteDataLayer.Orm
             return lts[0].ToDynamic();
         }
 
+        public void Insert(object entity) {
+            Type type = entity.GetType();
+            InsertAs(entity, _schemaDefs.ContainsKey(type.FullName)
+                                            ? _schemaDefs[type.FullName]
+                                            : new ScriptedSchema(type));            
+        }
+
         public void Insert<T>(T entity) {
-            InsertAs<T>(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+            InsertAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T)));
         }
 
-        public void InsertAs<T>(T entity, ScriptedSchema schemaDef) {
+        public void InsertAs(object entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptInsert(entity, schemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             if (lts[0].Rows.Count >0) {
-                DataObjectExtensions.UpdateValues<T>(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
+                DataObjectExtensions.UpdateValues(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
             }
         }
 
@@ -88,7 +95,7 @@ namespace LiteDataLayer.Orm
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T));
             foreach (var entity in entities) {
-                InsertAs<T>(entity, schemaDef);
+                InsertAs(entity, schemaDef);
             }
         }
 
@@ -97,27 +104,43 @@ namespace LiteDataLayer.Orm
         }
 
         public T Load<T>(T entity) {
-            return LoadAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+            return (T)LoadAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T)));                        
         }
 
-        public T LoadAs<T>(T entity, ScriptedSchema schemaDef) {
+        public object Load(object entity) {
+            Type type = entity.GetType();
+            return LoadAs(entity, _schemaDefs.ContainsKey(type.FullName)
+                                            ? _schemaDefs[type.FullName]
+                                            : new ScriptedSchema(type));
+        }
+
+        public object LoadAs(object entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptLoad(entity, schemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             Console.WriteLine(lts[0].ToTextResults("|"));
-            if (lts[0].Rows.Count == 0) { return default(T); }
-            DataObjectExtensions.UpdateValues<T>(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
+            if (lts[0].Rows.Count == 0) { 
+                new LiteOrmException("Cannot load selected object " + entity.StringifyValues());
+            }
+            DataObjectExtensions.UpdateValues(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
             return entity;
         }
 
         public void Update<T>(T entity) {
-            UpdateAs<T>(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+            UpdateAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T)));
         }
 
-        public void UpdateAs<T>(T entity, ScriptedSchema schemaDef) {
+        public void Update(object entity) {
+            var type = entity.GetType();
+            UpdateAs(entity,  _schemaDefs.ContainsKey(type.FullName)
+                                            ? _schemaDefs[type.FullName]
+                                            : new ScriptedSchema(type));
+        }
+
+        public void UpdateAs(object entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptUpdate(entity, schemaDef);
             dataLink.ExecuteNonQuery(sql);
         }
@@ -128,7 +151,7 @@ namespace LiteDataLayer.Orm
                                             : new ScriptedSchema(typeof(T)));
         }
 
-        public void DeleteAs<T>(T entity, ScriptedSchema schemaDef) {
+        public void DeleteAs(object entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptDelete(entity, schemaDef);
             dataLink.ExecuteNonQuery(sql);
         }
@@ -141,7 +164,14 @@ namespace LiteDataLayer.Orm
             return itms.ToList();
         }
 
-        public List<T> SelectAll<T>()
+        public List<object> Select(string sql, Type type) {
+            LiteTable[] lts = dataLink.GetTabularSets(sql, 30);
+            var itms = (from row in lts[0].Rows
+                        select DataObjectExtensions.CreateNewType(row, lts[0].ColumnNames.ToArray(), type));
+            return itms.ToList();            
+        }
+
+        public List<T> Select<T>()
         {            
             string sql = scripter.ScriptSelect<T>();
             LiteTable[] lts = dataLink.GetTabularSets(sql);
@@ -150,6 +180,15 @@ namespace LiteDataLayer.Orm
             return itms.ToList();
         }
 
+        public List<object> Select(Type type)
+        {            
+            string sql = scripter.ScriptSelect(new ScriptedSchema(type));
+            LiteTable[] lts = dataLink.GetTabularSets(sql);
+            var itms = (from row in lts[0].Rows
+                        select DataObjectExtensions.CreateNewType(row, lts[0].ColumnNames.ToArray(), type));
+            return itms.ToList();
+        }
+        
         //TODO - doesn't handle schema def!!
         public List<T> SelectWhere<T>(object selector) {
             string sql = scripter.ScriptSelect<T>(selector);
@@ -159,7 +198,7 @@ namespace LiteDataLayer.Orm
             return itms.ToList();            
         }
 
-        public T First<T>(string sql) {
+        public T FirstOrDefault<T>(string sql) {
             LiteTable[] lts = dataLink.GetTabularSets(sql,30);
             if (lts[0].Rows.Count  > 0)
             {

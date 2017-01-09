@@ -65,7 +65,7 @@ namespace LiteDataLayer.Tests
 
             Console.WriteLine("Testing Select");
             Console.WriteLine("-------------------");
-            Console.WriteLine(string.Format("Found {0} records", orm.SelectAll<Testy>().Count()));
+            Console.WriteLine(string.Format("Found {0} records", orm.Select<Testy>().Count()));
             
             Console.WriteLine("Testing Select Where");
             Console.WriteLine("-------------------");
@@ -77,6 +77,7 @@ namespace LiteDataLayer.Tests
 
         public void TestCrud(Testy testy, Action CreateTable) {
             CreateTable.Invoke();
+            Console.WriteLine("-- Generics");
             Console.WriteLine("Insert");            
             orm.Insert<Testy>(testy);   
             Console.WriteLine(testy);
@@ -88,7 +89,21 @@ namespace LiteDataLayer.Tests
             Console.WriteLine(testy);
             Console.WriteLine("Delete");            
             orm.Delete<Testy>(testy);
+
+            Console.WriteLine("-- Objects");            
+            Console.WriteLine("Insert");            
+            orm.Insert(testy);   
             Console.WriteLine(testy);
+            Console.WriteLine("Load");            
+            orm.Load(testy);
+            Console.WriteLine(testy);
+            Console.WriteLine("Update");            
+            orm.Update(testy);
+            Console.WriteLine(testy);
+            Console.WriteLine("Delete");            
+            orm.Delete(testy);
+            Console.WriteLine(testy);
+            
         }
     }
 }

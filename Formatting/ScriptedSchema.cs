@@ -70,8 +70,10 @@ namespace LiteDataLayer.Formatting
         public bool IncludeOnly { get; set; }
         public List<ScriptedColumn> Columns { get; set; }
 
-            
+        public Type Type { get; set; }
+
         public ScriptedSchema(Type type, string directive = null) {
+            Type = type;
             string op = "initialising";
             directive = directive ?? "";
             SetTableName(type, directive);
@@ -100,14 +102,6 @@ namespace LiteDataLayer.Formatting
                         directive, op, ex.Message));
             }
         }
-
-        // public ScriptedSchema(Type t, object selector, string directive) {
-        //     directive = directive ?? "";
-        //     SetTableName(t, directive);
-        //     Columns = new List<ScriptedColumn>();
-        //     Columns.AddRange((selector.GetType().GetProperties()
-        //             .Select(p => new ScriptedColumn(p.Name))).ToArray());
-        // }
 
         public ScriptedSchema ChangeTableNameTo(string tableName) {
             TableName = tableName;

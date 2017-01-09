@@ -93,6 +93,12 @@ namespace LiteDataLayer.Formatting
             return sql;
         }
 
+        public string ScriptSelect(ScriptedSchema schema) {
+            string sql = string.Format("SELECT {1} FROM {0}", schema.TableName,
+                    string.Join(", ", schema.Columns.Select(p => p.ColumnName + " AS " + p.PropertyName)));
+            return sql;
+        }
+
         public string ScriptSelect<T>(object selector , ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(typeof(T), "");
             Console.WriteLine(selector);

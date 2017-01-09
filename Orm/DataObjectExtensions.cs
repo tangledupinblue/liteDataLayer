@@ -1,11 +1,13 @@
 using System;
 using System.Reflection;
+using System.Text;
+using LiteDataLayer.Formatting;
 
 namespace LiteDataLayer.Orm
 {
     public static class DataObjectExtensions
     {
-        public static void UpdateValues<T>(T entity, object[] vals, string[] columnNames)
+        public static void UpdateValues(object entity, object[] vals, string[] columnNames)
         {
             Type thisone = entity.GetType();
             for (int i = 0; i < columnNames.Length; i++)
@@ -54,12 +56,15 @@ namespace LiteDataLayer.Orm
         } 
 
         public static T CopyValues<T>(object original) {
-            return CopyValues(original, CreateNewType<T>(new object[] {}, new string[] {}));
+            return (T)CopyValues(original, CreateNewType<T>(new object[] {}, new string[] {}));
+        }
+        
+        public static T CopyToNew<T>(this object self) {
+            return CopyValues<T>(self);
         }
 
-        public static T CopyValues<T>(object original, T target)
-        {
-            Type thisone = typeof(T);
+        public static object CopyValues(object original, object target) {
+            Type thisone = target.GetType();
             var originalProps = original.GetType().GetProperties();
             foreach(var originalProp in originalProps)
             {                
@@ -88,11 +93,30 @@ namespace LiteDataLayer.Orm
             return target;
         } 
 
-        public static T CreateNewType<T>(object[] vals, string[] columnNames)
-        {
-            T item = Activator.CreateInstance<T>();
-            UpdateValues<T>(item, vals, columnNames);
+        public static T CreateNewType<T>(object[] vals, string[] columnNames) {
+            return (T)CreateNewType(vals, columnNames, typeof(T));
+        }
+
+        public static object CreateNewType(object[] vals, string[] columnNames, Type type) {
+            object item = Activator.CreateInstance(type);
+            UpdateValues(item, vals, columnNames);
             return item;
+        }
+
+        public static string StringifyValues(this object self) {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(" { ");
+            var originalProps =self.GetType().GetProperties();
+            foreach(var originalProp in originalProps) {                
+                var type = originalProp.PropertyType;
+                var val = originalProp.GetValue(self); 
+                if (val != (type.GetTypeInfo().IsValueType ? Activator.CreateInstance(type) : null)) {
+                    sb.Append(SqlFormatter.Format(" {0}: {1}, ", 
+                            new LiteralSqlString(originalProp.Name), val)); 
+                }          
+            }
+            sb.Append(" } ");
+            return sb.ToString();
         }
 
         private static object ChangeType(object value, Type conversion)
