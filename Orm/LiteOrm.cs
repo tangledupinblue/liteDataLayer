@@ -146,9 +146,16 @@ namespace LiteDataLayer.Orm
         }
 
         public void Delete<T>(T entity)  {
-            string sql = scripter.ScriptDelete(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
-                                            ? _schemaDefs[typeof(T).FullName]
-                                            : new ScriptedSchema(typeof(T)));
+            DeleteAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+                    ? _schemaDefs[typeof(T).FullName]
+                    : new ScriptedSchema(typeof(T)));
+        }
+
+        public void Delete(object entity) {
+            var type = entity.GetType();
+            DeleteAs(entity, _schemaDefs.ContainsKey(type.FullName)
+                    ? _schemaDefs[type.FullName]
+                    : new ScriptedSchema(type));
         }
 
         public void DeleteAs(object entity, ScriptedSchema schemaDef) {
