@@ -45,8 +45,9 @@ namespace LiteDataLayer.Formatting
                 throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
                         entity.GetType(), schema.ToString()));
             }
-            string insert = string.Format("SELECT * FROM {0} WHERE {1}",
+            string insert = string.Format("SELECT {1} FROM {0} WHERE {2}",
                         schema.TableName,
+                        string.Join(", ", schema.Columns.Select(p => p.ColumnName + " AS " + p.PropertyName)),                    
                         string.Join(" AND ", whereCols
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
             return insert;                    
@@ -86,12 +87,12 @@ namespace LiteDataLayer.Formatting
             return insert;                    
         }
 
-        public string ScriptSelect<T>(ScriptedSchema schema = null) {
-            schema = schema ?? new ScriptedSchema(typeof(T), "");
-            string sql = string.Format("SELECT {1} FROM {0}", schema.TableName,
-                    string.Join(", ", schema.Columns.Select(p => p.ColumnName + " AS " + p.PropertyName)));
-            return sql;
-        }
+        // public string ScriptSelect(Type type, ScriptedSchema schema = null) {
+        //     schema = schema ?? new ScriptedSchema(type, "");
+        //     string sql = string.Format("SELECT {1} FROM {0}", schema.TableName,
+        //             string.Join(", ", schema.Columns.Select(p => p.ColumnName + " AS " + p.PropertyName)));
+        //     return sql;
+        // }
 
         public string ScriptSelect(ScriptedSchema schema) {
             string sql = string.Format("SELECT {1} FROM {0}", schema.TableName,
@@ -99,8 +100,7 @@ namespace LiteDataLayer.Formatting
             return sql;
         }
 
-        public string ScriptSelect<T>(object selector , ScriptedSchema schema = null) {
-            schema = schema ?? new ScriptedSchema(typeof(T), "");
+        public string ScriptSelect(object selector , ScriptedSchema schema) {
             Console.WriteLine(selector);
             var whereCols = from prop in selector.GetType().GetProperties()
                             join col in schema.Columns
@@ -110,7 +110,7 @@ namespace LiteDataLayer.Formatting
                                         val = prop.GetValue(selector) };
             if (!whereCols.Any()) { 
                 throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
-                        typeof(T), schema.ToString()));
+                        schema.Type, schema.ToString()));
             }
             return string.Format("SELECT {1} FROM {0} WHERE {2}",
                     schema.TableName,

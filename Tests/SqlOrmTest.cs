@@ -73,6 +73,20 @@ namespace LiteDataLayer.Tests
             Console.WriteLine(selector.GetType());
             Console.WriteLine(string.Format("Found {0} records",
                         orm.SelectWhere<Testy>(selector).Count()));
+
+            //check schema applies....
+            Console.WriteLine("Checking Custom Schemas on the ORM");
+            Console.WriteLine("----------------------------------");
+            orm.SetSchema(typeof(BadTesty), 
+                    new ScriptedSchema(typeof(BadTesty))
+                            .ChangeTableNameTo("Testy")
+                            .ChangeColumnName("badnum1", "num1")
+                            .ChangeColumnName("badnum2", "num2")); 
+
+            Console.WriteLine(orm.GetSchema(typeof(BadTesty)));
+
+            TestCrud(new BadTesty { badnum1 = 1,  badnum2 = -1 }, 
+                    () => dataLink.ExecuteNonQuery(TestyFactory.GetTestyTableSql()));
         }
 
         public void TestCrud(Testy testy, Action CreateTable) {
@@ -101,6 +115,39 @@ namespace LiteDataLayer.Tests
             orm.Update(testy);
             Console.WriteLine(testy);
             Console.WriteLine("Delete");            
+            orm.Delete(testy);
+            Console.WriteLine(testy);
+            
+        }
+
+        public void TestCrud(BadTesty testy, Action CreateTable) {
+            CreateTable.Invoke();
+            Console.WriteLine("-- Generics");
+            Console.WriteLine("Insert");            
+            orm.Insert<BadTesty>(testy);   
+            Console.WriteLine(testy);
+            Console.WriteLine("Load");            
+            orm.Load<BadTesty>(testy);
+            Console.WriteLine(testy);
+            Console.WriteLine("Update");            
+            orm.Update<BadTesty>(testy);
+            Console.WriteLine(testy);
+            Console.WriteLine(orm.Select<BadTesty>());
+            Console.WriteLine("Delete");            
+            orm.Delete<BadTesty>(testy);
+
+            Console.WriteLine("-- Objects");            
+            Console.WriteLine("Insert");            
+            orm.Insert(testy);   
+            Console.WriteLine(testy);
+            Console.WriteLine("Load");            
+            orm.Load(testy);
+            Console.WriteLine(testy);
+            Console.WriteLine("Update");            
+            orm.Update(testy);
+            Console.WriteLine(testy);
+            Console.WriteLine("Delete");            
+            Console.WriteLine(orm.Select(typeof(BadTesty)));
             orm.Delete(testy);
             Console.WriteLine(testy);
             

@@ -38,6 +38,13 @@ namespace LiteDataLayer.Tests
     {
 		public    int badnum1 {get; set; }	
 		public    int? badnum2 {get; set; }
+
+        public override string ToString() {
+            return string.Format("BadTesty: {0}",
+                string.Join(";", this.GetType().GetProperties()
+                            .Select(p => p.Name + "=" + Convert.ToString(p.GetValue(this) ?? "null"))
+                            .ToArray()));
+        }
     }
 
 	public static class TestyFactory

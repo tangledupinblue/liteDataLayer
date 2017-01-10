@@ -56,6 +56,12 @@ namespace LiteDataLayer.Orm
             return this;
         }
         
+        public ScriptedSchema GetSchema(Type type) {
+            return _schemaDefs.Keys.Contains(type.FullName)
+                ? _schemaDefs[type.FullName]
+                : null;
+        }
+
         public LiteOrm ClearSchema(Type type) {
             if (_schemaDefs.Keys.Contains(type.FullName)) {
                 _schemaDefs.Remove(type.FullName);
@@ -69,34 +75,38 @@ namespace LiteDataLayer.Orm
             return lts[0].ToDynamic();
         }
 
-        public void Insert(object entity) {
+        public object Insert(object entity) {
             Type type = entity.GetType();
-            InsertAs(entity, _schemaDefs.ContainsKey(type.FullName)
+            return InsertAs(entity, _schemaDefs.ContainsKey(type.FullName)
                                             ? _schemaDefs[type.FullName]
                                             : new ScriptedSchema(type));            
         }
 
-        public void Insert<T>(T entity) {
-            InsertAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+        public T Insert<T>(T entity) {
+            return (T)InsertAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T)));
         }
 
-        public void InsertAs(object entity, ScriptedSchema schemaDef) {
+        public object InsertAs(object entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptInsert(entity, schemaDef);
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             if (lts[0].Rows.Count >0) {
                 DataObjectExtensions.UpdateValues(entity, lts[0].Rows[0], lts[0].ColumnNames.ToArray());
             }
+            return entity;
         }
 
-        public void InsertMany<T>(List<T> entities) {
+        public List<T> InsertMany<T>(List<T> entities) {
             ScriptedSchema schemaDef = _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T));
+            List<T> inserted = new List<T>();
             foreach (var entity in entities) {
-                InsertAs(entity, schemaDef);
+                var each = (T)InsertAs(entity, schemaDef);
+                inserted.Add(each);
             }
+            return inserted;
         }
 
         public T Load<T>(object selector) {
@@ -127,22 +137,23 @@ namespace LiteDataLayer.Orm
             return entity;
         }
 
-        public void Update<T>(T entity) {
-            UpdateAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
+        public T Update<T>(T entity) {
+            return (T)UpdateAs(entity, _schemaDefs.ContainsKey(typeof(T).FullName)
                                             ? _schemaDefs[typeof(T).FullName]
                                             : new ScriptedSchema(typeof(T)));
         }
 
-        public void Update(object entity) {
+        public object Update(object entity) {
             var type = entity.GetType();
-            UpdateAs(entity,  _schemaDefs.ContainsKey(type.FullName)
+            return UpdateAs(entity,  _schemaDefs.ContainsKey(type.FullName)
                                             ? _schemaDefs[type.FullName]
                                             : new ScriptedSchema(type));
         }
 
-        public void UpdateAs(object entity, ScriptedSchema schemaDef) {
+        public object UpdateAs(object entity, ScriptedSchema schemaDef) {
             string sql = scripter.ScriptUpdate(entity, schemaDef);
             dataLink.ExecuteNonQuery(sql);
+            return entity;
         }
 
         public void Delete<T>(T entity)  {
@@ -180,16 +191,14 @@ namespace LiteDataLayer.Orm
 
         public List<T> Select<T>()
         {            
-            string sql = scripter.ScriptSelect<T>();
-            LiteTable[] lts = dataLink.GetTabularSets(sql);
-            var itms = (from row in lts[0].Rows
-                        select DataObjectExtensions.CreateNewType<T>(row, lts[0].ColumnNames.ToArray()));
-            return itms.ToList();
+            return Select(typeof(T)).Select(p => (T)p).ToList();
         }
 
         public List<object> Select(Type type)
         {            
-            string sql = scripter.ScriptSelect(new ScriptedSchema(type));
+            string sql = scripter.ScriptSelect(_schemaDefs.ContainsKey(type.FullName)
+                    ? _schemaDefs[type.FullName]
+                    : new ScriptedSchema(type));
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             var itms = (from row in lts[0].Rows
                         select DataObjectExtensions.CreateNewType(row, lts[0].ColumnNames.ToArray(), type));
@@ -198,10 +207,23 @@ namespace LiteDataLayer.Orm
         
         //TODO - doesn't handle schema def!!
         public List<T> SelectWhere<T>(object selector) {
-            string sql = scripter.ScriptSelect<T>(selector);
+            Type type = typeof(T);
+            string sql = scripter.ScriptSelect(selector, _schemaDefs.ContainsKey(type.FullName)
+                    ? _schemaDefs[type.FullName]
+                    : new ScriptedSchema(type));
             LiteTable[] lts = dataLink.GetTabularSets(sql);
             var itms = (from row in lts[0].Rows
                         select DataObjectExtensions.CreateNewType<T>(row, lts[0].ColumnNames.ToArray()));
+            return itms.ToList();            
+        }
+
+        public List<object> SelectWhere(object selector, Type type) {
+            string sql = scripter.ScriptSelect(selector, _schemaDefs.ContainsKey(type.FullName)
+                    ? _schemaDefs[type.FullName]
+                    : new ScriptedSchema(type));
+            LiteTable[] lts = dataLink.GetTabularSets(sql);
+            var itms = (from row in lts[0].Rows
+                        select DataObjectExtensions.CreateNewType(row, lts[0].ColumnNames.ToArray(), type));
             return itms.ToList();            
         }
 

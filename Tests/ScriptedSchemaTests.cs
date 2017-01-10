@@ -64,19 +64,19 @@ namespace LiteDataLayer.Tests
             StringBuilder badBuilder = new StringBuilder();
             badBuilder.AppendLine(_sqlScripter.ScriptInsert(badTesty, badSchema));
             Console.WriteLine(badBuilder.ToString());
-            badBuilder.AppendLine(_sqlScripter.ScriptLoad(badTesty, badSchema));
-            Console.WriteLine(badBuilder.ToString());
+            Debug.Assert(_sqlScripter.ScriptLoad(badTesty, badSchema).Contains("AS bad"));
+            Console.WriteLine(_sqlScripter.ScriptLoad(badTesty, badSchema));
             badBuilder.AppendLine(_sqlScripter.ScriptUpdate(badTesty, badSchema));
             Console.WriteLine(badBuilder.ToString());
             badBuilder.AppendLine(_sqlScripter.ScriptDelete(badTesty, badSchema));
             Console.WriteLine(badBuilder.ToString());
             Debug.Assert(!badBuilder.ToString().Contains("bad"));
             badBuilder.Clear();
-            badBuilder.AppendLine(_sqlScripter.ScriptSelect<BadTesty>(badSchema));
+            badBuilder.AppendLine(_sqlScripter.ScriptSelect(badSchema));
             Console.WriteLine(badBuilder.ToString());
             Debug.Assert(badBuilder.ToString().Contains("AS bad"));
             badBuilder.Clear();
-            badBuilder.AppendLine(_sqlScripter.ScriptSelect<BadTesty>(new { badnum1 = -1 }, badSchema));
+            badBuilder.AppendLine(_sqlScripter.ScriptSelect(new { badnum1 = -1 }, badSchema));
             Console.WriteLine(badBuilder.ToString());
             Debug.Assert(badBuilder.ToString().Contains("AS bad"));
         }
