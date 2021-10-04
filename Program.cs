@@ -11,16 +11,17 @@ namespace ConsoleApplication
         {
             Console.WriteLine("Hello World!");
             IDataLink dataLink = new SqlDataLink(args[0]);
-            SqlDataLinkTest dtst = new SqlDataLinkTest(dataLink);
-            dtst.Run();
-            SqlScriptingTest stst = new SqlScriptingTest(
-                dataLink,
-                new SqlScripter());
-            stst.Run();
-            SqlOrmTest otst = new SqlOrmTest(
-                dataLink,
-                new SqlScripter());
-            otst.Run();
+
+            new ConnectionTester(dataLink).Run();
+
+            new AdHocApiKey(dataLink, new SqlScripter()).Run();
+
+            new SqlDataLinkTest(dataLink).Run();
+
+            new SqlScriptingTest(dataLink, new SqlScripter()).Run();
+            
+            new SqlOrmTest(dataLink, new SqlScripter()).Run();
+            
             new ScriptedSchemaTests().Run();
         }
     }

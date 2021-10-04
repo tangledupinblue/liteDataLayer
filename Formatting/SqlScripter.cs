@@ -6,6 +6,7 @@ using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Dynamic;
 
 namespace LiteDataLayer.Formatting
 {
@@ -20,11 +21,11 @@ namespace LiteDataLayer.Formatting
                         schema.TableName,
                         string.Join(", ", cols.Select(p => p.ColumnName)),
                         string.Join(", ", cols.Select(p => p.PropertyName)
-                            .Join(entity.GetType().GetProperties(),
+                            .Join(entity.GetProps(),
                                 (left) => left, (right) => right.Name,
                                 (left,right) => new {   name = right.Name,
                                                         type = right.PropertyType, 
-                                                        val = right.GetValue(entity) })
+                                                        val = right.Value })
                             .Select(p => SqlFormatter.GetSqlString(p.val, p.type))),
                         schema.Columns.Any(p => p.IsAutoID)
                             ? string.Format("SELECT SCOPE_IDENTITY() AS {0}", schema.Columns.First().ColumnName)
@@ -36,11 +37,11 @@ namespace LiteDataLayer.Formatting
             schema = schema ?? new ScriptedSchema(entity.GetType(), "");
             var whereCols =    schema.Columns.Where(p => p.IsKey)
                                 //.Select(p => p.ColumnName)
-                                .Join(entity.GetType().GetProperties(),
+                                .Join(entity.GetProps(),
                                 (left) => left.PropertyName, (right) => right.Name,
                                 (left,right) => new {   name = left.ColumnName,
                                                         type = right.PropertyType, 
-                                                        val = right.GetValue(entity) });
+                                                        val = right.Value });
             if (!whereCols.Any()) { 
                 throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
                         entity.GetType(), schema.ToString()));
@@ -56,12 +57,12 @@ namespace LiteDataLayer.Formatting
         public string ScriptUpdate(object entity, ScriptedSchema schema = null) {
             schema = schema ?? new ScriptedSchema(entity.GetType(), "");
             var cols = schema.Columns  //.Select(p => new { p.ColumnName, p.IsKey })
-                            .Join(entity.GetType().GetProperties(),
+                            .Join(entity.GetProps(),
                                 (left) => left.PropertyName, (right) => right.Name,
                                 (left,right) => new {   name = left.ColumnName,
                                                         isKey = left.IsKey,
                                                         type = right.PropertyType, 
-                                                        val = right.GetValue(entity) })
+                                                        val = right.Value })
                             .ToArray();
 
             string insert = string.Format("UPDATE {0} SET {1} WHERE {2}",
@@ -78,11 +79,11 @@ namespace LiteDataLayer.Formatting
             var cols = schema.Columns.Where(p => p.IsKey);
             string insert = string.Format("DELETE FROM {0} WHERE {1}",
                         schema.TableName,
-                        string.Join(" AND ", cols.Join(entity.GetType().GetProperties(),
+                        string.Join(" AND ", cols.Join(entity.GetProps(),
                                 (left) => left.PropertyName, (right) => right.Name,
                                 (left,right) => new {   name = left.ColumnName,
                                                         type = right.PropertyType, 
-                                                        val = right.GetValue(entity) })
+                                                        val = right.Value })
                             .Select(p => p.name + " = " + SqlFormatter.GetSqlString(p.val, p.type))));
             return insert;                    
         }
@@ -102,12 +103,12 @@ namespace LiteDataLayer.Formatting
 
         public string ScriptSelect(object selector , ScriptedSchema schema) {
             Console.WriteLine(selector);
-            var whereCols = from prop in selector.GetType().GetProperties()
+            var whereCols = from prop in selector.GetProps()
                             join col in schema.Columns
                             on prop.Name equals col.PropertyName
                             select new { name = col.ColumnName,
                                         type = prop.PropertyType,
-                                        val = prop.GetValue(selector) };
+                                        val = prop.Value };
             if (!whereCols.Any()) { 
                 throw new Exception(string.Format("Invalid Columns Specified for {0}\r\n{1}",
                         schema.Type, schema.ToString()));
@@ -125,4 +126,33 @@ namespace LiteDataLayer.Formatting
             Console.WriteLine(ss.ToString());
         }
     }
+
+    public struct SimplePropInfo
+    {   
+        public string Name { get; set; }
+        public Type PropertyType { get; set; }
+        public object Value { get; set; }
+    }
+
+    static class PropertyExtensions
+    {
+
+        public static List<SimplePropInfo> GetProps(this object self) {
+         
+            return self is ExpandoObject
+                ? ((ExpandoObject)self).Select(p => 
+                        new SimplePropInfo() {
+                            Name = p.Key,
+                            PropertyType = p.Value.GetType(),
+                            Value = p.Value
+                        }).ToList()
+                : self.GetType().GetProperties().Select(p => 
+                        new SimplePropInfo() {
+                            Name = p.Name,  
+                            PropertyType = p.PropertyType,
+                            Value = p.GetValue(self)
+                        }).ToList();
+        }
+    }
+
 }

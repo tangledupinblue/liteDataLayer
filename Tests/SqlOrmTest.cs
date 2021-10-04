@@ -73,6 +73,8 @@ namespace LiteDataLayer.Tests
             Console.WriteLine(selector.GetType());
             Console.WriteLine(string.Format("Found {0} records",
                         orm.SelectWhere<Testy>(selector).Count()));
+            Console.WriteLine(string.Format("Found {0} records",
+                        orm.SelectWhere(selector, typeof(Testy)).Count()));
 
             //check schema applies....
             Console.WriteLine("Checking Custom Schemas on the ORM");
