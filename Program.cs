@@ -9,20 +9,24 @@ namespace ConsoleApplication
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            IDataLink dataLink = new SqlDataLink(args[0]);
+            Console.WriteLine("Diagnostic Tests!");
 
-            new ConnectionTester(dataLink).Run();
+            SqlFormattingTests.DoFormatting();
 
-            new AdHocApiKey(dataLink, new SqlScripter()).Run();
 
-            new SqlDataLinkTest(dataLink).Run();
+            // IDataLink dataLink = new SqlDataLink(args[0]);
 
-            new SqlScriptingTest(dataLink, new SqlScripter()).Run();
+            // new ConnectionTester(dataLink).Run();
+
+            // new AdHocApiKey(dataLink, new SqlScripter()).Run();
+
+            // new SqlDataLinkTest(dataLink).Run();
+
+            // new SqlScriptingTest(dataLink, new SqlScripter()).Run();
             
-            new SqlOrmTest(dataLink, new SqlScripter()).Run();
+            // new SqlOrmTest(dataLink, new SqlScripter()).Run();
             
-            new ScriptedSchemaTests().Run();
+            // new ScriptedSchemaTests().Run();
         }
     }
 }

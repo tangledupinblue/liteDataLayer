@@ -1,0 +1,10 @@
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/LiteDataLayer.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/LiteDataLayer.deps.json
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/LiteDataLayer.runtimeconfig.json
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/LiteDataLayer.pdb
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/runtimes/win7-x64/native/sni.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/runtimes/win7-x86/native/sni.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/runtimes/unix/lib/netstandard1.3/System.Data.SqlClient.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/runtimes/win/lib/netstandard1.3/System.Data.SqlClient.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/runtimes/unix/lib/netstandard1.3/System.Text.Encoding.CodePages.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/publish/runtimes/win/lib/netstandard1.3/System.Text.Encoding.CodePages.dll

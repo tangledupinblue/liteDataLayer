@@ -65,15 +65,18 @@ namespace LiteDataLayer.Formatting
                             else { valString = "1"; }
                         }
                         break;
-                    case "System.Float":
+                    case "System.Single":
                         //invariant culture seems to behave differently on ubuntu 
-                        valString = ((float)valObject).ToString("N").Replace(",",".");
+                        // valString = ((float)valObject).ToString("N").Replace(",",".");
+                        valString = ((float)valObject).ToString(CultureInfo.InvariantCulture);
                         break;
                     case "System.Decimal":
-                        valString = ((decimal)valObject).ToString("N").Replace(",",".");
+                        // valString = ((decimal)valObject).ToString("N").Replace(",",".");
+                        valString = ((decimal)valObject).ToString(CultureInfo.InvariantCulture);
                         break;
                     case "System.Double":
-                        valString = ((double)valObject).ToString("N").Replace(",",".");
+                        // valString = ((double)valObject).ToString("N").Replace(",",".");
+                        valString = ((double)valObject).ToString(CultureInfo.InvariantCulture);
                         break;
                     case "System.Guid":
                         valString = "'" + valObject.ToString() + "'";

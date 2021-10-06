@@ -1,0 +1,12 @@
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/LiteDataLayer.deps.json
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/LiteDataLayer.runtimeconfig.json
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/LiteDataLayer.runtimeconfig.dev.json
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/LiteDataLayer.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/bin/Debug/netcoreapp2.0/LiteDataLayer.pdb
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.csprojAssemblyReference.cache
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.AssemblyInfoInputs.cache
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.AssemblyInfo.cs
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.csproj.CoreCompileInputs.cache
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.dll
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.pdb
+/home/barrys/Documents/code/CSharp/liteDataLayer/obj/Debug/netcoreapp2.0/LiteDataLayer.genruntimeconfig.cache
